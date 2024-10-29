@@ -1,0 +1,54 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 3</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+
+    function preload ()
+    {
+        this.load.image('sky', 'assets/sky.png');
+        this.load.image('ground', 'assets/platform.png');
+        this.load.image('star', 'assets/star.png');
+        this.load.image('bomb', 'assets/bomb.png');
+        this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+    }
+
+    function create ()
+    {
+        /// 400, 300 은 x, y 좌표로 Phaser는 기본적으로 중앙에 위치.
+        /// 이미지 사이즈 기준으로 좌표를 지정하면 됩니다.
+        this.add.image(400, 300, 'sky');
+        this.add.image(400, 300, 'star'); // 배경 위에 별을 배치하려면 순서가 중요하다.
+    }
+
+    function update ()
+    {
+    }
+
+</script>
+
+</body>
+</html>
