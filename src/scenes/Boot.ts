@@ -29,6 +29,9 @@ export class Boot extends Scene
         this.load.image('15', 'assets/winter_bg/15.png');
         this.load.image('16', 'assets/winter_bg/16.png');
         this.load.image('christmas_tree', 'assets/winter_bg/christmas_tree.png');
+        this.load.image('wn_house', 'assets/winter_bg/wn_house.png')
+        this.load.image('mid-layer-a', 'assets/winter_bg/mid-layer-a.png')
+        this.load.image('mountain', 'assets/winter_bg/Mountain_12.png')
     }
 
     create ()
