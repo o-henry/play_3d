@@ -77,21 +77,21 @@ export class Preloader extends Scene {
     const imageScale = 0.25; // 이미지 크기를 줄이기 위해 스케일을 설정
     this.instructions.push(
       this.add
-        .image(width / 2 - 73, height / 2 - 10, "key_a")
+        .image(width / 2 - 70, height / 2 - 20, "key_a")
         .setScale(imageScale)
         .setDepth(11)
         .setOrigin(0.5)
     );
     this.instructions.push(
       this.add
-        .image(width / 2, height / 2 - 10, "key_d")
+        .image(width / 2, height / 2 - 20, "key_d")
         .setScale(imageScale)
         .setDepth(11)
         .setOrigin(0.5)
     );
     this.instructions.push(
       this.add
-        .image(width / 2 + 100, height / 2 - 10, "key_space")
+        .image(width / 2 + 110, height / 2 - 20, "key_space")
         .setScale(imageScale)
         .setDepth(11)
         .setOrigin(0.5)

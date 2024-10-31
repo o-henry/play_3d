@@ -7,19 +7,19 @@ export function addInstructionTexts(scene: Scene) {
   const instructionTexts: Phaser.GameObjects.Text[] = [];
   instructionTexts.push(
     scene.add
-      .text(width / 2 - 73, height / 2 + 35, "왼쪽 이동", textStyle)
+      .text(width / 2 - 73, height / 2 + 30, "왼쪽 이동", textStyle)
       .setDepth(11)
       .setOrigin(0.5)
   );
   instructionTexts.push(
     scene.add
-      .text(width / 2, height / 2 + 35, "오른쪽 이동", textStyle)
+      .text(width / 2, height / 2 + 30, "오른쪽 이동", textStyle)
       .setDepth(11)
       .setOrigin(0.5)
   );
   instructionTexts.push(
     scene.add
-      .text(width / 2 + 100, height / 2 + 35, "점프", textStyle)
+      .text(width / 2 + 108, height / 2 + 30, "점프", textStyle)
       .setDepth(11)
       .setOrigin(0.5)
   );
