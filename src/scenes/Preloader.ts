@@ -1,40 +1,39 @@
 import { Scene } from "phaser";
+import { Otter } from "../layer/otter";
+import { BackgroundLayer } from "../layer/background";
+import { addInstructionTexts } from "../layer/instruction";
 
 export class Preloader extends Scene {
-  private backgrounds: {
-    sprite: Phaser.GameObjects.TileSprite;
-    speed: number;
-  }[];
-  private otter: Phaser.Physics.Arcade.Sprite;
-
-  // 방향키를 감지할 키를 추가하기!
   private leftKey: Phaser.Input.Keyboard.Key | null = null;
   private rightKey: Phaser.Input.Keyboard.Key | null = null;
   private spaceKey: Phaser.Input.Keyboard.Key | null = null;
 
+  private otter: Otter;
+
+  private backgroundLayers: BackgroundLayer[] = [];
+  private instructions: Phaser.GameObjects.Image[] = [];
+  private instructionTexts: Phaser.GameObjects.Text[] = []; // 키보드 설명 텍스트를 위한 배열
+  private backgroundOverlay: Phaser.GameObjects.Graphics; // 어두운 배경 오버레이
+
   constructor() {
     super("Preloader");
-    this.backgrounds = []; // 초기화
+    this.handleInput = this.handleInput.bind(this); // handleInput 메서드를 바인딩
   }
 
   init() {
-    //  A simple progress bar. This is the outline of the bar.
-    this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff);
-    //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
-    const bar = this.add.rectangle(512 - 230, 384, 4, 28, 0xffffff);
-    //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
+    const progressBar = this.add.rectangle(512 - 230, 384, 4, 28, 0xffffff);
     this.load.on("progress", (progress: number) => {
-      //  Update the progress bar (our bar is 464px wide, so 100% = 464px)
-      bar.width = 4 + 460 * progress;
+      progressBar.width = 4 + 460 * progress;
     });
     this.input.keyboard.createCursorKeys();
   }
 
   preload() {
-    //  Load the assets for the game - Replace with your own assets
+    // Load the assets for the game - Replace with your own assets
   }
 
   create() {
+    /// 배경 설정
     const { width, height } = this.scale;
 
     const fixed_bg = this.add.image(0, 0, "1");
@@ -44,83 +43,65 @@ export class Preloader extends Scene {
     const scale = Math.max(scaleX, scaleY);
     fixed_bg.setScale(scale).setScrollFactor(0);
 
-    const layer_one = ["3", "4"];
-    const layer_two = ["5", "6", "7", "8"];
-    const layer_three = ["9", "10", "11", "12"];
-    const layer_four = ["13"];
-    const layer_five = ["14", "15", "16"];
+    const layers = [
+      { keys: ["3", "4"], speed: 0.2, depth: 0 },
+      { keys: ["5", "6", "7", "8"], speed: 0.4, depth: 1 },
+      { keys: ["9", "10", "11", "12"], speed: 0.8, depth: 2 },
+      { keys: ["13"], speed: 0.9, depth: 2 },
+      { keys: ["christmas_tree"], speed: 0.8, depth: 3 },
+      { keys: ["14", "15", "16"], speed: 2, depth: 4 },
+    ];
 
-    const addLayer = (keys: string[], speed: number) => {
-      keys.forEach((key) => {
-        const bg = this.add.tileSprite(0, 0, width, height, key);
-        bg.setOrigin(0, 0);
-        bg.setScrollFactor(0, 0);
-        bg.setDisplaySize(width, height); // 이미지 크기를 화면 크기로 설정합니다
-        this.backgrounds.push({ sprite: bg, speed });
-      });
-    };
-
-    addLayer(layer_one, 0.2); // 레이어 1
-    addLayer(layer_two, 0.4); // 레이어 2
-    addLayer(layer_three, 0.8); // 레이어 3
-    addLayer(layer_four, 0.9); // 레이어 4
-    addLayer(layer_five, 2); // 레이어 5 (가장 빠름)
-
-    /// sleep
-    this.anims.create({
-      key: "sleep",
-      frames: [
-        { key: "otter0" },
-        { key: "otter1" },
-        { key: "otter2" },
-        { key: "otter3" },
-        { key: "otter4" },
-        { key: "otter5" },
-        { key: "otter6" },
-        { key: "otter7" },
-        { key: "otter8", duration: 50 },
-      ],
-      frameRate: 9,
-      repeat: -1,
+    layers.forEach((layer) => {
+      const bgLayer = new BackgroundLayer(
+        this,
+        layer.keys,
+        layer.speed,
+        layer.depth
+      );
+      this.backgroundLayers.push(bgLayer);
     });
 
-    /// move_right
-    this.anims.create({
-      key: "move_right",
-      frames: [
-        { key: "otter_run_0" },
-        { key: "otter_run_1" },
-        { key: "otter_run_2" },
-        { key: "otter_run_3" },
-        { key: "otter_run_4", duration: 50 },
-      ],
-      frameRate: 5,
-      repeat: -1,
-    });
+    /// otter 초기화
+    this.otter = new Otter(this);
+    this.otter.setAnimationKeys();
+    this.otter.getSprite().setDepth(2);
 
-    // jump
-    this.anims.create({
-      key: "jump",
-      frames: [
-        { key: "otter_jump_0" },
-        { key: "otter_jump_1" },
-        { key: "otter_jump_2" },
-        { key: "otter_jump_3" },
-        { key: "otter_jump_4" },
-        { key: "otter_jump_5" },
-        { key: "otter_jump_6" },
-        { key: "otter_jump_7" },
-        { key: "otter_jump_8" },
-        { key: "otter_jump_9", duration: 50 },
-      ],
-      frameRate: 10,
-      repeat: -1,
-    });
+    // 어두운 배경 오버레이 추가
+    this.backgroundOverlay = this.add.graphics();
+    this.backgroundOverlay.fillStyle(0x000000, 0.5); // 어두운 색과 투명도 설정
+    this.backgroundOverlay.fillRect(0, 0, width, height);
+    this.backgroundOverlay.setDepth(4); // 가장 앞에 표시
 
-    this.otter = this.physics.add.sprite(40, 228, "otter0").play("sleep");
-    this.otter.setDisplaySize(94, 94);
+    // 키보드 입력 설명 이미지 추가
+    const imageScale = 0.25; // 이미지 크기를 줄이기 위해 스케일을 설정
+    this.instructions.push(
+      this.add
+        .image(width / 2 - 73, height / 2 - 10, "key_a")
+        .setScale(imageScale)
+        .setDepth(11)
+        .setOrigin(0.5)
+    );
+    this.instructions.push(
+      this.add
+        .image(width / 2, height / 2 - 10, "key_d")
+        .setScale(imageScale)
+        .setDepth(11)
+        .setOrigin(0.5)
+    );
+    this.instructions.push(
+      this.add
+        .image(width / 2 + 100, height / 2 - 10, "key_space")
+        .setScale(imageScale)
+        .setDepth(11)
+        .setOrigin(0.5)
+    );
+    // 키보드 설명 텍스트 추가
+    this.instructionTexts = addInstructionTexts(this);
+    // 입력 감지 이벤트 추가
+    this.input.keyboard.on("keydown", this.handleInput, this);
 
-    // 사용할 키를 추가해줍니다.
+    /// 키 매핑
     this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     this.rightKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.D
@@ -130,40 +111,41 @@ export class Preloader extends Scene {
     );
   }
 
+  handleInput() {
+    // 입력이 감지되면 키보드 이미지와 어두운 배경을 숨기기
+    this.instructions.forEach((image) => image.setVisible(false));
+    this.instructionTexts.forEach((text) => text.setVisible(false));
+    this.backgroundOverlay.setVisible(false);
+
+    // 입력 감지 이벤트 제거
+    this.input.keyboard.off("keydown", this.handleInput, this);
+  }
+
   update() {
-    const { width } = this.scale;
-
     if (this.otter) {
-      // 수달 캐릭터 이동
       if (this.leftKey?.isDown) {
-        this.otter.setVelocityX(-100);
-        this.otter.play("move_right", true);
-        this.otter.setFlipX(true);
-        this.backgrounds.forEach((bg) => {
-          bg.sprite.tilePositionX -= bg.speed * 2; // 배경을 오른쪽으로 이동
-        });
+        this.otter.move("left");
+        this.backgroundLayers.forEach((layer) => layer.move("left"));
       } else if (this.rightKey?.isDown) {
-        this.otter.setVelocityX(100);
-        this.otter.play("move_right", true);
-        this.otter.setFlipX(false);
-        this.backgrounds.forEach((bg) => {
-          bg.sprite.tilePositionX += bg.speed * 2; // 배경을 왼쪽으로 이동
-        });
+        this.otter.move("right");
+        this.backgroundLayers.forEach((layer) => layer.move("right"));
       } else {
-        this.otter.setVelocityX(0);
-        this.otter.play("sleep", true);
-      }
-      // 스페이스바를 눌렀을 때 점프
-      if (this.spaceKey?.isDown && this.otter.body.touching.down) {
-        this.otter.play("jump", true);
-        this.otter.setVelocityY(-300);
+        this.otter.idle();
       }
 
-      // 화면 밖으로 못 나가게 하기
-      if (this.otter.x < 0) {
-        this.otter.x = 0;
-      } else if (this.otter.x > width - this.otter.displayWidth) {
-        this.otter.x = width - this.otter.displayWidth;
+      if (this.spaceKey?.isDown) {
+        this.otter.jump();
+      }
+
+      /// 화면 밖으로 나가지 못하도록 하기
+      const { width } = this.scale;
+      const position = this.otter.getPosition();
+      const halfWidth = this.otter.getSprite().displayWidth / 2; // 수달의 반 너비
+
+      if (position < halfWidth) {
+        this.otter.setPosition(halfWidth);
+      } else if (position > width - halfWidth) {
+        this.otter.setPosition(width - halfWidth);
       }
     }
   }
